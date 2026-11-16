@@ -5973,8 +5973,13 @@ gyroLabel();
 var _lastPtr = 0;
 function addTouchCompat(node, onDown, onMove, onUp) {
   function fresh() { return Date.now() - _lastPtr > 600; }
+  // 手指落在真實 UI（按鈕／輸入框／卡片）時絕對不可以 preventDefault：
+  // iOS Safari 收到 preventDefault 就唔會再產生 click，結果「打到字但按唔到開始」。
+  function uiTap(t) {
+    return !!(t && t.closest && t.closest("button,input,label,select,textarea,a,.screen,#opts,#panel,#toast,#devSeg,#sound"));
+  }
   node.addEventListener("touchstart", function (e) {
-    if (!fresh()) return;
+    if (!fresh() || uiTap(e.target)) return;
     e.preventDefault();
     var t = e.changedTouches[0]; onDown(t.clientX, t.clientY);
   }, { passive: false });
@@ -6550,10 +6555,9 @@ document.getElementById("btnCopy").addEventListener("click", function () {
   var btn = document.getElementById("btnStuStart");
   var err = document.getElementById("stuErr");
   var nameEl = document.getElementById("stuName");
-  if (nameEl) nameEl.addEventListener("keydown", function (ev) {   // 手機鍵盤按「完成」即可開始
-    if (ev.key === "Enter" || ev.keyCode === 13) { ev.preventDefault(); btn.click(); }
-  });
-  btn.addEventListener("click", function () {
+  var _stuBusy = false;
+  function doStuStart() {
+    if (_stuBusy) return;
     var nm = (document.getElementById("stuName").value || "").trim();
     if (!nm) {
       err.textContent = "請先輸入姓名／學號";
@@ -6561,6 +6565,7 @@ document.getElementById("btnCopy").addEventListener("click", function () {
       document.getElementById("stuName").focus();
       return;
     }
+    _stuBusy = true;
     err.hidden = true;
     btn.disabled = true; btn.textContent = "⏳ 載入題目…";
     loadBank(id).then(function (list) {
@@ -6568,11 +6573,22 @@ document.getElementById("btnCopy").addEventListener("click", function () {
       sheetBank = list; startQuiz(list.slice());
     }).catch(function (e) {
       var c = cachedBank(id);
+      _stuBusy = false;
       btn.disabled = false; btn.textContent = "🏹 開始";
       if (c && c.length) { sheetBank = c; startQuiz(c.slice()); }
       else { err.textContent = "❌ 載入失敗（" + errText(e) + "）。請叫老師檢查連結。"; err.hidden = false; }
     });
-  });
+  }
+  if (nameEl) {
+    nameEl.addEventListener("keydown", function (ev) {   // 手機鍵盤按「完成」即可開始
+      if (ev.key === "Enter" || ev.keyCode === 13) { ev.preventDefault(); doStuStart(); }
+    });
+    nameEl.addEventListener("focus", function () {   // 鍵盤彈出後把「開始」捲回可見範圍
+      setTimeout(function () { try { btn.scrollIntoView({ block: "center" }); } catch (x) {} }, 320);
+    });
+  }
+  btn.addEventListener("click", doStuStart);
+  btn.addEventListener("pointerup", doStuStart);   // iOS 保險：即使 click 被 Safari 吞掉都有反應（_stuBusy 去重）
 })();
 
 /* 老師模式：記住上次的 ID，一打開就自動讀目錄 */
