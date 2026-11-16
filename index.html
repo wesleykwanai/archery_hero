@@ -137,9 +137,11 @@
   @keyframes bootrun{0%{transform:translateX(-110%)}100%{transform:translateX(255%)}}
 
   /* ---------- overlays ---------- */
-  .screen{position:fixed;inset:0;z-index:20;display:grid;place-items:center;
+  .screen{position:fixed;inset:0;z-index:20;display:flex;align-items:flex-start;justify-content:center;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
     background:rgba(20,14,8,.72);backdrop-filter:blur(3px);padding:20px}
   .screen[hidden]{display:none}
+  .screen > .box{margin:auto}   /* 矮身手機（橫放 iPhone）時可以滾動，唔會削走按鈕 */
   .box{background:linear-gradient(#fffdf4,#f4e9d2);border:5px solid var(--gold);border-radius:24px;
     padding:26px 30px;max-width:min(680px,94vw);text-align:center;color:var(--ink);
     box-shadow:0 10px 0 rgba(0,0,0,.3)}
@@ -147,7 +149,7 @@
   .box p{margin:8px 0;font-size:14px;line-height:1.6;color:#6b5730}
   .btn{display:inline-block;margin:6px 5px;padding:11px 22px;border-radius:999px;border:0;
     background:linear-gradient(#f0c962,#d9a63d);color:#3a2708;font-weight:800;font-size:15px;
-    cursor:pointer;box-shadow:0 4px 0 #a9802a}
+    cursor:pointer;box-shadow:0 4px 0 #a9802a;touch-action:manipulation}
   .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a9802a}
   .btn.ghost{background:#fff;box-shadow:0 4px 0 #d8cbb0;color:#6b5730}
   code{background:#efe6cf;padding:1px 6px;border-radius:5px;font-size:12px}
@@ -193,7 +195,9 @@
   .who{margin-top:4px;padding:12px;border:2px solid #cdb98c;border-radius:14px;background:#fffdf6;text-align:left}
   .who .wholab{font:800 14px/1.4 inherit;color:#3a2708}
   .nin{display:block;width:100%;box-sizing:border-box;margin:8px 0 10px;padding:11px 12px;
-    border:2px solid #cdb98c;border-radius:12px;background:#fff;font:700 15px/1.2 inherit;color:#3a2708}
+    border:2px solid #cdb98c;border-radius:12px;background:#fff;color:#3a2708;
+    font-family:inherit;font-size:16px;font-weight:700;line-height:1.2;   /* ≥ 16px：iOS 才不會自動放大畫面 */
+    touch-action:manipulation}
   .nin::placeholder{color:#b9a887;font-weight:500}
   .gerr{margin-top:8px;padding:7px 10px;border-radius:9px;background:#fdeceb;border:1px solid #e7a9a3;
     font-size:12.5px;font-weight:700;color:#9c2f26;text-align:left}
@@ -221,7 +225,7 @@
   }
 </style>
 </head>
-<body><div id="boot0" style="position:fixed;inset:0;z-index:999;display:grid;place-items:center;background:radial-gradient(circle at 50% 42%,#fff8e6,#f4e5c4 58%,#e7d1a6);font:700 22px/1.6 system-ui,-apple-system,'PingFang HK','Microsoft JhengHei',sans-serif;color:#7a5a1e">射箭答題 · 正在載入…</div>
+<body><div id="boot0" style="position:fixed;inset:0;z-index:999;pointer-events:none;display:grid;place-items:center;background:radial-gradient(circle at 50% 42%,#fff8e6,#f4e5c4 58%,#e7d1a6);font:700 22px/1.6 system-ui,-apple-system,'PingFang HK','Microsoft JhengHei',sans-serif;color:#7a5a1e">射箭答題 · 正在載入…</div>
 <script>window.__E=[];window.addEventListener('error',function(e){window.__E.push((e.message||'?')+' @'+((e.filename||'').split('/').pop())+':'+e.lineno);});</script>
 <div id="boot"><div><b>射箭答題</b><i></i><u>正在載入弓箭手與場景…</u></div></div>
 <div id="vig"></div>
@@ -5445,7 +5449,12 @@ function startQuiz(list) {
     el.timer.textContent = "⏱ " + fmtTime(seconds);
   }, 250);
   el.timer.textContent = "⏱ 0:00";
-  state.list = list; state.idx = 0; state.score = 0; state.correct = 0;
+  state.list = list.slice();
+  for (var qi = state.list.length - 1; qi > 0; qi--) {   // 每局題目次序隨機（每次玩都唔同）
+    var qj = Math.floor(Math.random() * (qi + 1));
+    var qt = state.list[qi]; state.list[qi] = state.list[qj]; state.list[qj] = qt;
+  }
+  state.idx = 0; state.score = 0; state.correct = 0;
   state.log = [];
   state.lastSol = "";
   document.getElementById("btnSol").hidden = true;
@@ -6540,6 +6549,10 @@ document.getElementById("btnCopy").addEventListener("click", function () {
   document.body.classList.add("student");
   var btn = document.getElementById("btnStuStart");
   var err = document.getElementById("stuErr");
+  var nameEl = document.getElementById("stuName");
+  if (nameEl) nameEl.addEventListener("keydown", function (ev) {   // 手機鍵盤按「完成」即可開始
+    if (ev.key === "Enter" || ev.keyCode === 13) { ev.preventDefault(); btn.click(); }
+  });
   btn.addEventListener("click", function () {
     var nm = (document.getElementById("stuName").value || "").trim();
     if (!nm) {
@@ -6698,5 +6711,5 @@ window.addEventListener("drop", function (e) {
 
 boot();
 </script>
-<script>requestAnimationFrame(function(){requestAnimationFrame(function(){var b0=document.getElementById("boot0");if(b0)b0.remove();});});</script></body>
+<script>var b0=document.getElementById("boot0");if(b0&&b0.parentNode)b0.parentNode.removeChild(b0);</script></body>
 </html>
