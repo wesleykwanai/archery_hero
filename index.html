@@ -8,11 +8,11 @@
   :root{ --gold:#d9b45b; --ink:#2b1d10; }
   *{box-sizing:border-box}
   [hidden]{display:none!important}
-  html,body{margin:0;height:100%;overflow:hidden;background:#bfe3ff;
+  html,body{margin:0;height:100%;height:100dvh;overflow:hidden;background:#bfe3ff;
     font-family:"PingFang HK","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
     -webkit-user-select:none;user-select:none}
   canvas{touch-action:none;-webkit-touch-callout:none}
-  #cv{position:fixed;inset:0;display:block;width:100%!important;height:100%!important}
+  #cv{position:fixed;left:0;top:0;display:block;width:100vw!important;height:100vh!important;height:100dvh!important}
 
   /* ---------- HUD ---------- */
   .hud{position:fixed;z-index:5;pointer-events:none}
@@ -114,7 +114,8 @@
   body[data-dev="touch"] #pmRead{top:236px!important}
   body[data-dev="touch"] #pmPad{top:206px!important;height:64vh!important}
   body[data-dev="touch"] #banner{top:32%!important}
-  body[data-dev="touch"] #aimHint{bottom:auto!important;top:226px!important;right:18px!important}
+  body[data-dev="touch"] #aimHint{bottom:12px!important;top:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}
+  body[data-dev="touch"] #pmHint{left:auto!important;right:0!important;transform:none!important}
   #pmRead{position:fixed;z-index:6;right:88px;top:15%;width:124px;text-align:right;
     pointer-events:none;font-variant-numeric:tabular-nums}
   #pmRead b{display:block;font-size:26px;font-weight:900;color:#2b1d10;line-height:1;
@@ -5439,7 +5440,12 @@ function initScene() {
 
 function fitCamera() {
   if (!renderer) return;
-  var a = window.innerWidth / window.innerHeight;
+  // iOS Safari：工具列收起/展開會改 visualViewport，而 html{height:100%} 會停在舊高度
+  // → 以 visualViewport 為準，並用 inline !important 直接把畫布尺寸釘成 px
+  var vv = window.visualViewport;
+  var vw = Math.round((vv && vv.width) || window.innerWidth);
+  var vh = Math.round((vv && vv.height) || window.innerHeight);
+  var a = vw / vh;
   camera.aspect = a;
   var fv = 2 * Math.atan(Math.tan(HFOV / 2) / a) * 180 / Math.PI;
   FOV_BASE = Math.max(34, Math.min(58, fv));
@@ -5447,8 +5453,20 @@ function fitCamera() {
   FOV_WIDE = Math.max(FOV_BASE, Math.min(104, fw));
   camera.fov = FOV_BASE;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(vw, vh, false);
+  _cvW = vw; _cvH = vh;
+  var cv = renderer.domElement;
+  cv.style.setProperty("width", vw + "px", "important");
+  cv.style.setProperty("height", vh + "px", "important");
 }
+var _cvW = 0, _cvH = 0;
+// 監看：工具列動畫／旋轉／分屏都會改可視高度，差 2px 以上就重新貼合
+setInterval(function () {
+  var vv = window.visualViewport;
+  var w = Math.round((vv && vv.width) || window.innerWidth);
+  var h = Math.round((vv && vv.height) || window.innerHeight);
+  if (!_cvW || Math.abs(w - _cvW) > 2 || Math.abs(h - _cvH) > 2) fitCamera();
+}, 500);
 /* ============================================================
    4. 遊戲流程
    ============================================================ */
