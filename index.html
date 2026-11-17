@@ -12,7 +12,7 @@
     font-family:"PingFang HK","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
     -webkit-user-select:none;user-select:none}
   canvas{touch-action:none;-webkit-touch-callout:none}
-  #cv{position:fixed;inset:0;display:block}
+  #cv{position:fixed;inset:0;display:block;width:100%!important;height:100%!important}
 
   /* ---------- HUD ---------- */
   .hud{position:fixed;z-index:5;pointer-events:none}
@@ -105,6 +105,16 @@
   /* 觸控版面：進度條貼最左，三顆切換鈕退開，避免與進度條疊 */
   body[data-dev="touch"] #progress{left:8px}
   body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{left:34px!important}
+  /* ================= iPad：題目板也搬到頂部，下方全留給靶與射手 ================= */
+  body[data-dev="touch"] #panel{top:76px!important;bottom:auto!important;width:min(980px,74vw)!important}
+  body[data-dev="touch"] #devSeg{right:112px!important;top:14px!important}
+  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{left:8px!important}
+  body[data-dev="touch"] #progress{left:8px!important;top:212px!important;height:40vh!important}
+  body[data-dev="touch"] #pmWrap{top:236px!important}
+  body[data-dev="touch"] #pmRead{top:236px!important}
+  body[data-dev="touch"] #pmPad{top:206px!important;height:64vh!important}
+  body[data-dev="touch"] #banner{top:32%!important}
+  body[data-dev="touch"] #aimHint{bottom:auto!important;top:226px!important;right:18px!important}
   #pmRead{position:fixed;z-index:6;right:88px;top:15%;width:124px;text-align:right;
     pointer-events:none;font-variant-numeric:tabular-nums}
   #pmRead b{display:block;font-size:26px;font-weight:900;color:#2b1d10;line-height:1;
@@ -5842,12 +5852,12 @@ function setupPowerMeter() {
   addTouchCompat(document, function (x) { if (!gest && canShoot()) { gest = true; pmDown(); aimDown(x); } }, null, gUp);
 }
 
-/* ---- 裝置模式：電腦（滑鼠）/ 平板手機（觸控） ---- */
+/* ---- 裝置模式：電腦（滑鼠）/ iPhone / iPad ---- */
 var DEVMODE = "pc";
-function setDev(d) {
+function setDev(d, remember) {
   DEVMODE = (d === "touch" || d === "phone") ? d : "pc";
   document.body.dataset.dev = DEVMODE;
-  try { localStorage.setItem("aq.dev", DEVMODE); } catch (x) {}
+  if (remember !== false) { try { localStorage.setItem("aq.dev", DEVMODE); } catch (x) {} }
   var bs = document.querySelectorAll("#devSeg button");
   for (var i = 0; i < bs.length; i++)
     bs[i].setAttribute("aria-pressed", bs[i].getAttribute("data-d") === DEVMODE ? "true" : "false");
@@ -5857,15 +5867,38 @@ function setDev(d) {
   if (typeof fitCamera === "function") fitCamera();   // 版面變了要重算視窗比例
 }
 (function () {
-  var saved = null;
+  var explicit = false, saved = null;
   try { saved = localStorage.getItem("aq.dev"); } catch (x) {}
-  var coarse = !!(window.matchMedia && matchMedia("(pointer:coarse)").matches);
-  var tiny = Math.min(window.innerWidth, window.innerHeight) < 520;   // iPhone 横放約 430
-  var auto = coarse ? (tiny ? "phone" : "touch") : "pc";
-  setDev(saved || auto);
+  // 用 screen 的短邊（不隨工具列／旋轉變化）：iPhone 約 390–430，iPad 約 744–834
+  function autoMode() {
+    var coarse = !!(window.matchMedia && matchMedia("(pointer:coarse)").matches);
+    if (!coarse) return "pc";
+    var s = Math.min((window.screen && screen.width) || 0, (window.screen && screen.height) || 0);
+    return s >= 700 ? "touch" : "phone";
+  }
+  var auto = autoMode();
+  // 舊版可能錯存過 phone/touch（iPad 被存成 phone 就會擠爆）→ 與本機尺寸不符就自動修正
+  if (saved && (saved === "phone" || saved === "touch") && auto !== "pc" && saved !== auto) saved = auto;
+  setDev(saved || auto, false);
   var bs = document.querySelectorAll("#devSeg button");
   for (var i = 0; i < bs.length; i++)
-    bs[i].addEventListener("click", function () { setDev(this.getAttribute("data-d")); });
+    bs[i].addEventListener("click", function () { explicit = true; setDev(this.getAttribute("data-d")); });
+  // 旋轉／工具列自動收起會改 innerHeight，要重新對尺寸（否則 canvas 底部會留一條空白）
+  function refit() { if (typeof fitCamera === "function") fitCamera(); }
+  window.addEventListener("orientationchange", function () { setTimeout(refit, 260); setTimeout(refit, 800); });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", refit);
+    window.visualViewport.addEventListener("scroll", refit);
+  }
+  setTimeout(refit, 400); setTimeout(refit, 1500);
+  window.addEventListener("resize", function () {
+    refit();
+    if (!explicit) { var m = autoMode(); if (m !== DEVMODE) setDev(m, false); }
+  });
+  // iOS：擋掉雙擊與雙指縮放（縮放後版面會位移、UI 跑到畫面外）
+  document.addEventListener("gesturestart", function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("gesturechange", function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
 })();
 
 /* ---- 陀螺儀瞄準（iPad）----
