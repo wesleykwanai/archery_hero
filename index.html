@@ -295,7 +295,7 @@ body[data-dev="touch"] #btnGyroC{right:10px!important;left:auto!important;top:au
 <div id="cross"></div>
 
 <div id="pmWrap"><div id="pmTrack"><i id="pmGood"></i><i id="pmPerfect"></i><i id="pmFill"></i></div><b id="pmMark"></b>
-  <span id="pmHint">左手按住蓄力</span></div>
+  <span id="pmHint" style="display:none"></span></div>
 <div id="pmRead"><b id="pmPct">0%</b><i id="pmSpd">— m/s</i><i>靶距 24m</i></div>
 <div id="devSeg">
   <button type="button" data-d="pc">🖥 電腦</button>
@@ -303,7 +303,7 @@ body[data-dev="touch"] #btnGyroC{right:10px!important;left:auto!important;top:au
   <button type="button" data-d="touch">📲 iPad</button>
 </div>
 <div id="pmPad"></div>
-<div id="aimHint">右手拖曳畫面 ◀ ▶ 瞄準目標</div>
+<div id="aimHint" style="display:none"></div>
 <div id="combo"></div>
 
 <div class="hud" id="score">得分<b id="scoreVal">0</b><span id="flowers"></span><span id="timer">⏱ 0:00</span></div>
@@ -332,7 +332,6 @@ body[data-dev="touch"] #btnGyroC{right:10px!important;left:auto!important;top:au
   <div class="box">
     <h1>🏹 射箭答題</h1>
     <p>四個箭靶 <b>A / B / C / D</b>，選項文字在下方答案卡。<br>
-       <b>① 拖曳畫面</b>左右瞄準 →　<b>② 按住右側力度計</b>蓄力 →　<b>③ 鬆手射箭</b>！<br>
        <span style="font-size:13px;color:#9a7f4e">射中<b>正確答案</b>的靶才有分；越近靶心分數越高（金 10／9、紅 8／7、藍 6／5、黑 4／3）。</span></p>
     <!-- ① 題庫來源 -->
     <div class="gsec">
@@ -388,8 +387,7 @@ body[data-dev="touch"] #btnGyroC{right:10px!important;left:auto!important;top:au
 <div class="screen" id="stuScreen" hidden>
   <div class="box" style="text-align:center">
     <h1>🏹 射箭答題</h1>
-    <p>四個箭靶 <b>A / B / C / D</b>，選項文字睇下方答案卡。<br>
-      <b>① 拖曳畫面</b>瞄準 →　<b>② 按住右側力度計</b>蓄力 →　<b>③ 鬆手射箭</b>！</p>
+    <p>四個箭靶 <b>A / B / C / D</b>，選項文字睇下方答案卡。</p>
     <div class="who">
       <div class="wholab">請輸入你的姓名／學號</div>
       <input id="stuName" type="text" class="nin" placeholder="例如：4A 陳小明" maxlength="20">
@@ -5661,14 +5659,14 @@ function answer(choice, ring) {
   } else {
     state.streak = 0;
     if (showAns) {
-      showToast("✗ 答錯，正確答案 " + "ABCD"[cur.answer] + "（0 分）", "#e0483b");
+      showToast("✗ 答錯 · 答案 " + "ABCD"[cur.answer], "#e0483b");
       var rightTxt = escapeHtml(cur.options[cur.answer] || "");
       el.sol.innerHTML = "✗ 正確答案 <b>" + "ABCD"[cur.answer] + "：" + rightTxt + "</b>" +
         (cur.sol ? "<br><b>解：</b>" + escapeHtml(cur.sol) : "");
       state.lastSol = el.sol.innerHTML;
       document.getElementById("btnSol").hidden = false;
     } else {
-      showToast("✗ 答錯（0 分）· 再想清楚，仲有 " + (3 - cur.tries) + " 次機會", "#e0483b");
+      showToast("✗ 再試一次 · 仲有 " + (3 - cur.tries) + " 次", "#e0483b");
       el.sol.textContent = "";
       state.lastSol = "";
       document.getElementById("btnSol").hidden = true;
@@ -5694,6 +5692,13 @@ function answer(choice, ring) {
 function showToast(text, color) {
   el.toast.textContent = text;
   el.toast.style.color = color;
+  // 一律單行：按可用寬度自動縮字，避免斷成兩行
+  el.toast.style.whiteSpace = "nowrap";
+  el.toast.style.fontSize = "";
+  var maxW = window.innerWidth * 0.9, fs = parseFloat(getComputedStyle(el.toast).fontSize) || 28, g = 0;
+  while (el.toast.scrollWidth > maxW && fs > 13 && g++ < 24) {
+    fs -= 2; el.toast.style.fontSize = fs + "px";
+  }
   el.toast.classList.add("show");
   setTimeout(function () { el.toast.classList.remove("show"); }, 900);
 }
@@ -5805,7 +5810,7 @@ function setupPowerMeter() {
     rollPowerWindow();          // 每次射箭重新擲「完美力度」位置
     pmHold = true; pmT = 0; pmVal = 0;
     pmWrap.classList.add("hot");
-    pmHint.textContent = "放開射箭";
+    if (pmHint) pmHint.textContent = "放開射箭";
     startDraw();                          // 持續拉弓聲（放弦時停）
   }
   function pmUp() {
@@ -5813,7 +5818,7 @@ function setupPowerMeter() {
     pmHold = false;
     stopDraw();
     pmWrap.classList.remove("hot");
-    pmHint.textContent = (DEVMODE === "touch" || DEVMODE === "phone") ? "左手按住蓄力" : "按住蓄力";
+    if (pmHint) pmHint.textContent = "";
     if (pmSpd) pmSpd.textContent = "力度要求每箭隨機";
     fire(pmVal);
   }
@@ -6014,11 +6019,6 @@ function gyroLabel() {
     btnGyro.setAttribute("aria-pressed", GYRO.on ? "true" : "false");
   }
   if (btnGyroC) btnGyroC.style.display = GYRO.on ? "block" : "none";
-  var h = document.getElementById("aimHint");
-  if (h) {
-    if (GYRO.on) h.textContent = "陀螺儀微調：輕微傾斜即可（大範圍請拖曳）";
-    else h.textContent = DEVMODE === "touch" ? "手指左右拖曳 ◀ ▶ 瞄準" : "拖曳畫面 ◀ ▶ 瞄準目標";
-  }
 }
 function gyroStop() {
   GYRO.on = false; GYRO.base = null; clearTimeout(GYRO.timer);
@@ -6036,7 +6036,7 @@ function gyroStart() {
   GYRO.timer = setTimeout(function () {  // 授權成功但收不到數據（常見於非 HTTPS / 省電模式）
     if (GYRO.on && !GYRO.seen) {
       gyroStop();
-      showToast("收不到陀螺儀數據（iOS 必須 HTTPS）", "#e0483b");
+      showToast("收不到陀螺儀數據（要 HTTPS）", "#e0483b");
     }
   }, 1500);
 }
