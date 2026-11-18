@@ -108,14 +108,16 @@
   /* ================= iPad：題目板也搬到頂部，下方全留給靶與射手 ================= */
   body[data-dev="touch"] #panel{top:76px!important;bottom:auto!important;width:min(980px,74vw)!important}
   body[data-dev="touch"] #devSeg{right:112px!important;top:14px!important}
-  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{right:8px!important;left:auto!important}
+  body[data-dev="touch"] #btnView{right:10px!important;left:auto!important;top:auto!important;bottom:10px!important}
+body[data-dev="touch"] #btnGyro{right:10px!important;left:auto!important;top:auto!important;bottom:44px!important}
+body[data-dev="touch"] #btnGyroC{right:10px!important;left:auto!important;top:auto!important;bottom:78px!important}
   body[data-dev="touch"] #progress{right:8px!important;top:212px!important;height:40vh!important}
   body[data-dev="touch"] #pmWrap{top:236px!important}
   body[data-dev="touch"] #pmRead{top:236px!important}
   body[data-dev="touch"] #pmPad{top:206px!important;height:64vh!important;left:10px!important;width:78px!important}
   body[data-dev="touch"] #banner{top:32%!important}
   body[data-dev="touch"] #aimHint{bottom:12px!important;top:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}
-  body[data-dev="touch"] #pmHint{left:auto!important;right:0!important;transform:none!important}
+  body[data-dev="touch"] #pmHint{left:100%!important;right:auto!important;transform:none!important;margin-left:10px}
   #pmRead{position:fixed;z-index:6;left:88px;top:15%;width:124px;text-align:left;
     pointer-events:none;font-variant-numeric:tabular-nums}
   #pmRead b{display:block;font-size:26px;font-weight:900;color:#2b1d10;line-height:1;
@@ -259,7 +261,7 @@
   body[data-dev="phone"] #timer{font-size:9.5px!important;margin-left:4px!important;padding-left:4px!important}
   body[data-dev="phone"] #sound{right:4px!important;top:4px!important;padding:2px 6px!important;
     font-size:9px!important;border-width:2px!important;border-radius:8px!important}
-  body[data-dev="phone"] #devSeg{right:4px!important;top:30px!important;gap:3px!important}
+  body[data-dev="phone"] #devSeg{right:4px!important;top:56px!important;gap:3px!important}
   body[data-dev="phone"] #devSeg button{padding:3px 6px!important;font-size:9px!important;border-width:2px!important}
   body[data-dev="phone"] #banner{top:38%!important;font-size:11px!important;padding:3px 10px!important}
   body[data-dev="phone"] #combo{top:26%!important;font-size:17px!important}
@@ -5887,12 +5889,15 @@ function setDev(d, remember) {
 (function () {
   var explicit = false, saved = null;
   try { saved = localStorage.getItem("aq.dev"); } catch (x) {}
-  // 用 screen 的短邊（不隨工具列／旋轉變化）：iPhone 約 390–430，iPad 約 744–834
+  // 用「視窗短邊（CSS px）」判斷機型：不依賴 screen.width（Android 各瀏覽器回報不一致，
+  // 有時給裝置像素 1080×2400），也不依賴長寬方向（旋轉不會突然變版面）。
+  // 短邊 < 560 → 手機；≥ 560 且有觸控 → 平板；沒有粗指標 → 桌面。
   function autoMode() {
-    var coarse = !!(window.matchMedia && matchMedia("(pointer:coarse)").matches);
+    var coarse = !!(window.matchMedia && matchMedia("(pointer:coarse)").matches) ||
+                 (navigator.maxTouchPoints || 0) > 0;
     if (!coarse) return "pc";
-    var s = Math.min((window.screen && screen.width) || 0, (window.screen && screen.height) || 0);
-    return s >= 700 ? "touch" : "phone";
+    var s = Math.min(window.innerWidth || 0, window.innerHeight || 0);
+    return s >= 560 ? "touch" : "phone";
   }
   var auto = autoMode();
   // 舊版可能錯存過 phone/touch（iPad 被存成 phone 就會擠爆）→ 與本機尺寸不符就自動修正
