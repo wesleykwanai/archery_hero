@@ -28,7 +28,7 @@
     border:3px solid var(--gold);border-radius:12px;padding:6px 12px;font-size:14px;
     font-weight:700;color:var(--ink);cursor:pointer}
 
-  #progress{left:22px;top:78px;width:16px;height:46vh;background:rgba(255,255,255,.55);
+  #progress{right:22px;top:104px;width:16px;height:46vh;background:rgba(255,255,255,.55);
     border:3px solid var(--gold);border-radius:10px;overflow:hidden}
   #progress i{display:block;position:absolute;bottom:0;left:0;right:0;height:0;
     background:linear-gradient(#63e7c4,#2bb89a);transition:height .35s}
@@ -73,7 +73,7 @@
   #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
   /* ---------- 力度計 ---------- */
-  #pmWrap{position:fixed;z-index:6;right:16px;top:15%;height:56vh;width:64px;pointer-events:auto;
+  #pmWrap{position:fixed;z-index:6;left:16px;top:15%;height:56vh;width:64px;pointer-events:auto;
     touch-action:none;background:rgba(255,250,235,.34);border:3px solid var(--gold);
     border-radius:18px;box-shadow:0 3px 0 rgba(0,0,0,.18);opacity:.45;transition:opacity .2s}
   #pmWrap.on{opacity:1}
@@ -101,22 +101,22 @@
   /* 平板上：按鈕放大、力度計周邊多一圈看不見的「手指區」 */
   body[data-dev="touch"] #devSeg button{padding:10px 15px;font-size:14px}
   #pmPad{position:fixed;z-index:6;pointer-events:none}
-  body[data-dev="touch"] #pmPad{pointer-events:auto;right:0;top:7%;height:72vh;width:132px}
+  body[data-dev="touch"] #pmPad{pointer-events:auto;left:10px;top:206px;height:64vh!important;width:78px}
   /* 觸控版面：進度條貼最左，三顆切換鈕退開，避免與進度條疊 */
-  body[data-dev="touch"] #progress{left:8px}
-  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{left:34px!important}
+  body[data-dev="touch"] #progress{right:8px}
+  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{right:34px!important;left:auto!important}
   /* ================= iPad：題目板也搬到頂部，下方全留給靶與射手 ================= */
   body[data-dev="touch"] #panel{top:76px!important;bottom:auto!important;width:min(980px,74vw)!important}
   body[data-dev="touch"] #devSeg{right:112px!important;top:14px!important}
-  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{left:8px!important}
-  body[data-dev="touch"] #progress{left:8px!important;top:212px!important;height:40vh!important}
+  body[data-dev="touch"] #btnView,body[data-dev="touch"] #btnGyro,body[data-dev="touch"] #btnGyroC{right:8px!important;left:auto!important}
+  body[data-dev="touch"] #progress{right:8px!important;top:212px!important;height:40vh!important}
   body[data-dev="touch"] #pmWrap{top:236px!important}
   body[data-dev="touch"] #pmRead{top:236px!important}
-  body[data-dev="touch"] #pmPad{top:206px!important;height:64vh!important}
+  body[data-dev="touch"] #pmPad{top:206px!important;height:64vh!important;left:10px!important;width:78px!important}
   body[data-dev="touch"] #banner{top:32%!important}
   body[data-dev="touch"] #aimHint{bottom:12px!important;top:auto!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important}
   body[data-dev="touch"] #pmHint{left:auto!important;right:0!important;transform:none!important}
-  #pmRead{position:fixed;z-index:6;right:88px;top:15%;width:124px;text-align:right;
+  #pmRead{position:fixed;z-index:6;left:88px;top:15%;width:124px;text-align:left;
     pointer-events:none;font-variant-numeric:tabular-nums}
   #pmRead b{display:block;font-size:26px;font-weight:900;color:#2b1d10;line-height:1;
     text-shadow:0 2px 0 rgba(255,255,255,.75)}
@@ -125,7 +125,7 @@
   #pmHint{position:absolute;left:50%;top:-32px;transform:translateX(-50%);white-space:nowrap;
     font-size:12px;font-weight:800;color:#6b5730;background:rgba(255,250,235,.94);
     padding:3px 10px;border-radius:999px;border:2px solid var(--gold)}
-  #aimHint{position:fixed;z-index:5;right:16px;bottom:calc(18px + 118px);
+  #aimHint{position:fixed;z-index:5;left:16px;right:auto;bottom:12px;
     font-size:12px;font-weight:700;color:#6b5730;background:rgba(255,250,235,.82);
     padding:3px 12px;border-radius:999px;pointer-events:none}
 
@@ -231,7 +231,7 @@
 }
   @media (max-height: 560px){
     #pmWrap{height:64vh;top:9%;width:56px}
-    #pmRead{right:78px;top:9%;width:112px}
+    #pmRead{left:78px;top:9%;width:112px}
     #pmRead b{font-size:22px}
     #pmRead i{font-size:12px}
     #pmHint{font-size:11px}
@@ -263,24 +263,24 @@
   body[data-dev="phone"] #devSeg button{padding:3px 6px!important;font-size:9px!important;border-width:2px!important}
   body[data-dev="phone"] #banner{top:38%!important;font-size:11px!important;padding:3px 10px!important}
   body[data-dev="phone"] #combo{top:26%!important;font-size:17px!important}
-  body[data-dev="phone"] #progress{left:8px!important;top:110px!important;width:10px!important;
+  body[data-dev="phone"] #progress{right:8px!important;top:110px!important;width:10px!important;
     height:22vh!important;border-width:2px!important;border-radius:6px!important}
   body[data-dev="phone"] #btnView,body[data-dev="phone"] #btnGyro,body[data-dev="phone"] #btnGyroC{
-    left:30px!important;font-size:9.5px!important;padding:3px 6px!important;border-width:2px!important}
-  body[data-dev="phone"] #btnView{top:34px!important}
-  body[data-dev="phone"] #btnGyro{top:58px!important}
-  body[data-dev="phone"] #btnGyroC{top:82px!important}
-  body[data-dev="phone"] #pmWrap{right:4px!important;top:56px!important;width:30px!important;
+    right:30px!important;left:auto!important;font-size:9.5px!important;padding:3px 6px!important;border-width:2px!important}
+  body[data-dev="phone"] #btnView{top:auto!important;bottom:6px!important}
+  body[data-dev="phone"] #btnGyro{top:auto!important;bottom:30px!important}
+  body[data-dev="phone"] #btnGyroC{top:auto!important;bottom:54px!important}
+  body[data-dev="phone"] #pmWrap{left:4px!important;top:56px!important;width:30px!important;
     height:38vh!important;border-width:2px!important;border-radius:10px!important}
   body[data-dev="phone"] #pmTrack{left:4px!important;right:4px!important;bottom:4px!important;top:4px!important;border-radius:7px!important}
   body[data-dev="phone"] #pmGood,body[data-dev="phone"] #pmPerfect{left:4px!important;right:4px!important}
   body[data-dev="phone"] #pmHint{display:none!important}
-  body[data-dev="phone"] #pmRead{right:38px!important;top:58px!important;width:52px!important}
+  body[data-dev="phone"] #pmRead{left:38px!important;top:58px!important;width:52px!important}
   body[data-dev="phone"] #pmRead b{font-size:13px!important}
   body[data-dev="phone"] #pmRead i{font-size:8.5px!important;margin-top:0!important}
   body[data-dev="phone"] #aimHint{display:none!important}
-  body[data-dev="phone"] #pmPad{pointer-events:auto!important;right:0!important;top:52px!important;
-    height:42vh!important;width:86px!important}
+  body[data-dev="phone"] #pmPad{pointer-events:auto!important;left:0!important;top:52px!important;
+    height:42vh!important;width:44px!important}
   body[data-dev="phone"] #toast{top:52%!important;font-size:clamp(18px,4vw,28px)!important}
 </style>
 </head>
@@ -293,7 +293,7 @@
 <div id="cross"></div>
 
 <div id="pmWrap"><div id="pmTrack"><i id="pmGood"></i><i id="pmPerfect"></i><i id="pmFill"></i></div><b id="pmMark"></b>
-  <span id="pmHint">按住蓄力</span></div>
+  <span id="pmHint">左手按住蓄力</span></div>
 <div id="pmRead"><b id="pmPct">0%</b><i id="pmSpd">— m/s</i><i>靶距 24m</i></div>
 <div id="devSeg">
   <button type="button" data-d="pc">🖥 電腦</button>
@@ -301,7 +301,7 @@
   <button type="button" data-d="touch">📲 iPad</button>
 </div>
 <div id="pmPad"></div>
-<div id="aimHint">拖曳畫面 ◀ ▶ 瞄準目標</div>
+<div id="aimHint">右手拖曳畫面 ◀ ▶ 瞄準目標</div>
 <div id="combo"></div>
 
 <div class="hud" id="score">得分<b id="scoreVal">0</b><span id="flowers"></span><span id="timer">⏱ 0:00</span></div>
@@ -5811,7 +5811,7 @@ function setupPowerMeter() {
     pmHold = false;
     stopDraw();
     pmWrap.classList.remove("hot");
-    pmHint.textContent = "按住蓄力";
+    pmHint.textContent = (DEVMODE === "touch" || DEVMODE === "phone") ? "左手按住蓄力" : "按住蓄力";
     if (pmSpd) pmSpd.textContent = "力度要求每箭隨機";
     fire(pmVal);
   }
